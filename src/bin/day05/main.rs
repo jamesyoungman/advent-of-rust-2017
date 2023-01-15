@@ -9,11 +9,23 @@ struct Code {
 }
 
 impl Code {
-    fn step(&mut self) -> bool {
+    fn step(&mut self, part: i32) -> bool {
         match self.instructions.get_mut(self.pc as usize) {
             Some(offset) => {
                 self.pc += *offset as isize;
-                *offset += 1;
+                match part {
+                    1 => {
+                        *offset += 1;
+                    }
+                    2 => {
+                        if *offset >= 3 {
+                            *offset -= 1;
+                        } else {
+                            *offset += 1;
+                        }
+                    }
+                    _ => unreachable!(),
+                }
                 true
             }
             None => false,
@@ -54,7 +66,17 @@ fn test_parse() {
 fn part1(s: &str) -> usize {
     let mut code = Code::try_from(s).expect("input should be valid");
     for i in 0.. {
-        if !code.step() {
+        if !code.step(1) {
+            return i;
+        }
+    }
+    unreachable!()
+}
+
+fn part2(s: &str) -> usize {
+    let mut code = Code::try_from(s).expect("input should be valid");
+    for i in 0.. {
+        if !code.step(2) {
             return i;
         }
     }
@@ -64,4 +86,5 @@ fn part1(s: &str) -> usize {
 fn main() {
     let input = str::from_utf8(include_bytes!("input.txt")).expect("input should be valid UTF-8");
     println!("Day 05 part 1: {}", part1(input));
+    println!("Day 05 part 2: {}", part2(input));
 }
