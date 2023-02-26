@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::collections::HashMap;
 use std::str;
 
@@ -7,12 +8,14 @@ type Word = i32;
 
 struct Regs {
     registers: HashMap<String, Word>,
+    largest_ever: Word,
 }
 
 impl Regs {
     fn new() -> Regs {
         Regs {
             registers: HashMap::new(),
+            largest_ever: 0,
         }
     }
 
@@ -21,11 +24,16 @@ impl Regs {
     }
 
     fn set(&mut self, name: &str, value: Word) {
+        self.largest_ever = max(self.largest_ever, value);
         self.registers.insert(name.to_string(), value);
     }
 
-    fn largest_value(&self) -> Word {
+    fn largest_current_value(&self) -> Word {
         *self.registers.values().max().unwrap_or(&0)
+    }
+
+    fn largest_ever_value(&self) -> Word {
+        self.largest_ever
     }
 }
 
@@ -53,7 +61,7 @@ fn compute(current: Word, operation: &str, amount: Word) -> Word {
     }
 }
 
-fn part1(input: &str) -> Word {
+fn parts(input: &str) -> (Word, Word) {
     let mut registers = Regs::new();
     for line in input.split_terminator('\n') {
         if let Some((target_name, operation, amount, source, comparison, compare_with)) =
@@ -68,21 +76,26 @@ fn part1(input: &str) -> Word {
             panic!("failed to parse {line}");
         }
     }
-    registers.largest_value()
+    (
+        registers.largest_current_value(),
+        registers.largest_ever_value(),
+    )
 }
 
 #[test]
-fn test_part1() {
+fn test_part2() {
     let input = concat!(
         "b inc 5 if a > 1\n",
         "a inc 1 if b < 5\n",
         "c dec -10 if a >= 1\n",
         "c inc -20 if c == 10\n",
     );
-    assert_eq!(part1(input), 1);
+    assert_eq!(parts(input), (1, 10));
 }
 
 fn main() {
     let input = str::from_utf8(include_bytes!("input.txt")).expect("input should be valid UTF-8");
-    println!("Day 08 part 1: {}", part1(input));
+    let solution = parts(input);
+    println!("Day 08 part 1: {}", solution.0);
+    println!("Day 08 part 2: {}", solution.1);
 }
